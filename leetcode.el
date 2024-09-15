@@ -554,7 +554,7 @@ of QUERY-NAME."
                :title-slug .titleSlug
                :acceptance (format "%.1f%%" .acRate)
                :difficulty .difficulty
-               :paid-only  (eq .paidOnly :json-true)
+               :paid-only  (eq .paidOnly t)
                :tags       (seq-reduce (lambda (tags tag)
                                          (let-alist tag
                                            (push .slug tags)))
@@ -868,7 +868,7 @@ row."
   (message "LeetCode refreshing question list...")
   (aio-await (leetcode--fetch-question-list "all-code-essentials" 0 4000 #s(hash-table))) ; TODO pagination?
   (setq leetcode--display-tags leetcode-prefer-tag-display)
-  (leetcode-reset-filter-and-refresh))
+  (leetcode-refresh))
 
 (aio-defun leetcode--ensure-login (&optional force)
   (when (or force (not (leetcode--login-p)))

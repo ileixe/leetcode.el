@@ -743,8 +743,23 @@ Return a list of rows, each row is a vector:
   "Get difficulty from ROW."
   (aref row 4))
 
+(defvar leetcode--hidden-problems ())
+
+(defun leetcode-hide-current-problem ()
+  "Hide the current problem."
+  (interactive)
+  (let ((problem-id (leetcode--get-current-problem-id)))
+    (cl-pushnew problem-id leetcode--hidden-problems)
+    (leetcode-refresh)))
+
+(defun leetcode-reset-hidden-problems ()
+  "Reset the list of hidden problems."
+  (interactive)
+  (setq leetcode--hidden-problems nil)
+  (leetcode-refresh))
+
 (defun leetcode--filter (rows)
-  "Filter ROWS by `leetcode--filter-status',  `leetcode--filter-regex', `leetcode--filter-tag' and `leetcode--filter-difficulty'."
+  "Filter ROWS by `leetcode--filter-status',  `leetcode--filter-regex', `leetcode--filter-tag', `leetcode--hidden-problems', and `leetcode--filter-difficulty'."
   (seq-filter
    (lambda (row)
      (and
@@ -763,7 +778,8 @@ Return a list of rows, each row is a vector:
       (if leetcode--filter-difficulty
           (let ((difficulty (leetcode--row-difficulty row)))
             (string= difficulty leetcode--filter-difficulty))
-        t)))
+        t)
+      (not (member (aref row 1) leetcode--hidden-problems))))
    rows))
 
 
@@ -1412,7 +1428,8 @@ It will restore the layout based on current buffer's name."
 (defun leetcode--set-evil-local-map (map)
   "Set `evil-normal-state-local-map' to MAP."
   (when (featurep 'evil)
-    (define-key map "h" nil)
+    (define-key map "h" #'leetcode-hide-current-problem)
+    (define-key map "H" #'leetcode-reset-hidden-problem)
     (define-key map "v" nil)
     (define-key map "V" nil)
     (define-key map "b" nil)
@@ -1450,7 +1467,7 @@ It will restore the layout based on current buffer's name."
 (defvar leetcode-solution-mode-map
   (let ((map (make-sparse-keymap)))
     (prog1 map
-      (define-key map (kbd "C-c C-t") #'leetcode-try)
+      (define-key map (kbd "C-c C-o") #'leetcode-try)
       (define-key map (kbd "C-c C-s") #'leetcode-submit)
       (define-key map (kbd "C-c C-r") #'leetcode-restore-layout)))
   "Keymap for `leetcode-solution-mode'.")
